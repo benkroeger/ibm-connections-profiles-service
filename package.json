@@ -1,0 +1,44 @@
+{
+  "name": "ibm-connections-profiles-service",
+  "version": "0.0.1",
+  "description": "An IBM Connections Profiles API Wrapper, using the oniyi-request package for http and caching",
+  "author": {
+    "name": "Benjamin Kroeger",
+    "email": "benjamin.kroeger@gmail.com"
+  },
+  "repository": "benkroeger/ibm-connections-profiles-service",
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "ibm-connections-profiles",
+    "ibm-connections",
+    "ibm",
+    "connections",
+    "profiles",
+    "oniyi"
+  ],
+  "dependencies": {
+    "lodash": "^3.3.1",
+    "oniyi-requestor-client": "0.0.2",
+    "oniyi-vcard-parser": "0.0.1",
+    "prototypes": "^0.3.4",
+    "q": "^1.2.0",
+    "xmldom": "^0.1.19",
+    "xpath.js": "^1.0.5"
+  },
+  "devDependencies": {
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-nodeunit": "^0.4.1",
+    "grunt-contrib-watch": "^0.6.1",
+    "load-grunt-tasks": "^1.0.0",
+    "time-grunt": "^1.0.0",
+    "grunt-mocha-cli": "^1.11.0",
+    "jshint-stylish": "^1.0.0"
+  },
+  "scripts": {
+    "test": "grunt"
+  }
+}

@@ -326,10 +326,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
 	}
 
 	return q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.profileEntry)
-		.spread(function(response, data) {
-			// @TODO: need to check if data was processed successfully
-			return data;
-		});
+		.spread(extractDataFromRequestPromise);
 };
 
 IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
@@ -431,9 +428,7 @@ IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
 	}
 
 	return q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.profileService)
-		.spread(function(response, data) {
-			return data;
-		});
+		.spread(extractDataFromRequestPromise);
 };
 
 IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options) {
@@ -887,10 +882,7 @@ IbmConnectionsProfilesService.prototype.updateTags = function(options) {
 	requestOptions.body = tagsDoc.toString();
 
 	return q.ninvoke(self, 'makeRequest', 'put', requestOptions)
-		.spread(function(response, data) {
-			// @TODO: need to check if data was processed successfully
-			return data;
-		});
+		.spread(extractDataFromRequestPromise);
 };
 
 IbmConnectionsProfilesService.prototype.addTags = function(options) {

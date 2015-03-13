@@ -1,4 +1,4 @@
-#  [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-url]][daviddm-image]
+#  [![NPM version][npm-image]][npm-url]
 
 > An IBM Connections Profiles API Wrapper, using the oniyi-request package for http and caching
 
@@ -31,7 +31,3 @@ MIT © [Benjamin Kroeger]()
 
 [npm-url]: https://npmjs.org/package/ibm-connections-profiles
 [npm-image]: https://badge.fury.io/js/ibm-connections-profiles.svg
-[travis-url]: https://travis-ci.org/benkroeger/ibm-connections-profiles
-[travis-image]: https://travis-ci.org/benkroeger/ibm-connections-profiles.svg?branch=master
-[daviddm-url]: https://david-dm.org/benkroeger/ibm-connections-profiles.svg?theme=shields.io
-[daviddm-image]: https://david-dm.org/benkroeger/ibm-connections-profiles

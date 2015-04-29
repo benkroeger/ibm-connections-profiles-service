@@ -6,7 +6,7 @@ var util = require('util');
 // 3rd party modules
 var _ = require('lodash'),
 	q = require('q'),
-	oniyiRequestorClient = require('oniyi-requestor-client'),
+	OniyiRequestorClient = require('oniyi-requestor-client'),
 	oniyiVCardParser = require('oniyi-vcard-parser').factory;
 
 var xml = require('./lib/xml-utils');
@@ -277,14 +277,18 @@ function IbmConnectionsProfilesService(options) {
 				responseValidators: []
 			}
 		},
-		maxProfileAge: 1800
+		maxProfileAge: 1800,
+		defaultRequestOptions: {
+			headers: {
+				'user-agent': 'Mozilla/5.0'
+			}
+		}
 	}, options);
 
-	oniyiRequestorClient.call(self, options);
-
+	OniyiRequestorClient.call(self, options);
 	self.apiEntryPoint = util.format('%s://%s%s', options.endpoint.schema, options.endpoint.host, options.endpoint.contextRoot);
 }
-util.inherits(IbmConnectionsProfilesService, oniyiRequestorClient);
+util.inherits(IbmConnectionsProfilesService, OniyiRequestorClient);
 
 IbmConnectionsProfilesService.prototype.getEntry = function(options) {
 	var self = this;

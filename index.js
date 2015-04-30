@@ -78,10 +78,13 @@ var responseParser = {
 		var entry = vCardParser.toObject((xml.find(responseXML, 'content[type="text"]')[0]).textContent);
 
 		// parsing tags
-		try {
-			entry.tags = entry.tags.split(',');
-		} catch (e) {
-			// @TODO logging
+		if (_.isString(entry.tags)) {
+			if (entry.tags.length > 0) {
+				entry.tags = entry.tags.split(',');
+			}
+		}
+		if (!Array.isArray(entry.tags)) {
+			entry.tags = [];
 		}
 
 		// also not implemented in xml library yet

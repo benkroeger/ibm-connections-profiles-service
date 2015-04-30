@@ -301,6 +301,9 @@ function IbmConnectionsProfilesService(args) {
 
   OniyiRequestorClient.call(self, _.pick(options, ['redis', 'requestor', 'requestorOptions', 'defaultRequestOptions']));
   self.apiEntryPoint = util.format('%s://%s%s', options.endpoint.schema, options.endpoint.host, options.endpoint.contextRoot);
+  if (_.isNumber(options.maxProfileAge)) {
+    self._maxProfileAge = options.maxProfileAge;
+  }
 }
 util.inherits(IbmConnectionsProfilesService, OniyiRequestorClient);
 
@@ -320,8 +323,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
     qs: {
       format: 'full',
       output: 'vcard'
-    },
-    ttl: 1800
+    }
   }, self.getRequestOptions(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {

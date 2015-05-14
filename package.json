@@ -22,10 +22,10 @@
   ],
   "dependencies": {
     "lodash": "~3.8.0",
-    "oniyi-requestor-client": "~0.1.3",
-    "oniyi-vcard-parser": "~0.0.1",
-    "prototypes": "~0.3.4",
-    "q": "~1.3.0",
+    "oniyi-http-client": "benkroeger/oniyi-http-client",
+    "oniyi-vcard-parser": "~0.0.2",
+    "prototypes": "~0.4.0",
+    "q": "~1.4.0",
     "xmldom": "~0.1.19",
     "xpath.js": "~1.0.5"
   },

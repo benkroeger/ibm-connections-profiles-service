@@ -6,7 +6,7 @@ var util = require('util');
 // 3rd party modules
 var _ = require('lodash'),
   q = require('q'),
-  OniyiRequestorClient = require('oniyi-requestor-client'),
+  OniyiHttpClient = require('oniyi-http-client'),
   oniyiVCardParser = require('oniyi-vcard-parser').factory;
 
 var xml = require('./lib/xml-utils');
@@ -253,59 +253,21 @@ var responseParser = {
 };
 
 // the "class" definition
-function IbmConnectionsProfilesService(args) {
+function IbmConnectionsProfilesService(baseUrl, options) {
   var self = this;
 
-  if (!_.isPlainObject(args)) {
-    throw new TypeError('args must be defined for IbmConnectionsProfilesService');
-  }
-
-  var options = _.merge({
-    // define defaults here
-    endpoint: {
-      schema: 'https',
-      host: false,
-      contextRoot: '/profiles'
-    },
-    cache: {
-      disable: false,
-      storePrivate: false,
-      storeNoStore: false,
-      ignoreNoLastMod: false,
-      requestValidators: [],
-      responseValidators: []
-    },
-    throttle: {
-      disable: false,
-      limit: 120,
-      duration: 60000
-    },
-    maxProfileAge: 1800,
-    requestorOptions: {
-      cache: {},
-      throttle: {}
-    },
-    defaultRequestOptions: {
+  options = _.merge({
+    requestOptions: {
+      baseUrl: baseUrl,
       headers: {
         'user-agent': 'Mozilla/5.0'
       }
     }
-  }, args);
+  }, options);
 
-  // take provided cache and throttle options and merge into the format (per hostname) that will be passed on to OniyiRequestorClient
-  ['cache', 'throttle'].forEach(function(key) {
-    if (_.isPlainObject(options[key])) {
-      options.requestorOptions[key][options.endpoint.host] = options[key];
-    }
-  });
-
-  OniyiRequestorClient.call(self, _.pick(options, ['redis', 'requestor', 'requestorOptions', 'defaultRequestOptions']));
-  self.apiEntryPoint = util.format('%s://%s%s', options.endpoint.schema, options.endpoint.host, options.endpoint.contextRoot);
-  if (_.isNumber(options.maxProfileAge)) {
-    self._maxProfileAge = options.maxProfileAge;
-  }
+  OniyiHttpClient.call(self, options);
 }
-util.inherits(IbmConnectionsProfilesService, OniyiRequestorClient);
+util.inherits(IbmConnectionsProfilesService, OniyiHttpClient);
 
 IbmConnectionsProfilesService.prototype.getEntry = function(options) {
   var self = this;
@@ -324,7 +286,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
       format: 'full',
       output: 'vcard'
     }
-  }, self.getRequestOptions(options), {
+  }, self.extractRequestParams(options, ['baseUrl', 'uri', 'method', 'qs']), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
@@ -333,8 +295,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + authPath + '/atom/profileEntry.do';
-  requestOptions.ttl = options.ttl || self._maxProfileAge;
+  requestOptions.uri = authPath + '/atom/profileEntry.do';
 
   var entrySelector = _.pick(requestOptions.qs, ['email', 'key', 'userid']);
 
@@ -344,8 +305,18 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
     return q.reject(error);
   }
 
-  return q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.profileEntry)
-    .spread(extractDataFromRequestPromise);
+  // the makeRequest function can take two or three arguments
+  // the last has to be a function (which is done by q.ninvoke --> passes a callback with node conventions (err, data))
+  return q.ninvoke(self, 'makeRequest', requestOptions)
+    .spread(function(response, body) {
+      // expexted
+      // status codes: 200, 403, 404
+      // content-type: application/atom+xml
+      if (!response || response.statusCode !== 200) {
+        return q.reject(new Error('received invalid response'));
+      }
+      return responseParser.profileEntry(body);
+    });
 };
 
 IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
@@ -354,24 +325,27 @@ IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
 
   var entry = options.entry;
 
-  if (!entry || !entry.key) {
-    error = new Error(util.format('A valid entry must be provided to update it %j', entry));
+  if (!entry || !entry.userid) {
+    error = new Error(util.format('A valid profile entry must be provided and have a "userid" property %j', entry));
     error.status = 400;
     return q.reject(error);
   }
 
-  return self.getEditableFields(options)
+  return self.getEditableFields(_.merge({}, options, {
+      userid: entry.userid
+    }))
     .then(function(editableFields) {
       if (editableFields.indexOf('jobResp') > -1 && entry.jobResp && entry.jobResp.length > 128) {
         entry.jobResp = entry.jobResp.substr(0, 127);
       }
 
       // construct the request options
-      var requestOptions = _.merge(self.getRequestOptions(options), {
+      var requestOptions = _.merge(self.extractRequestParams(options), {
+        method: 'PUT',
         qs: {
-          key: entry.key
+          userid: entry.userid
         },
-        body: util.format(xmlTemplate.entry, vCardParser.toVcard(entry)),
+        body: util.format(xmlTemplate.entry, vCardParser.toVcard(entry, editableFields)),
         headers: {
           accept: 'application/atom+xml'
         }
@@ -379,26 +353,31 @@ IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
 
       var authPath = getAuthPath(requestOptions);
 
-      requestOptions.uri = self.apiEntryPoint + authPath + '/atom/entry.do';
+      requestOptions.uri = authPath + '/atom/profileEntry.do';
 
-      return q.ninvoke(self, 'makeRequest', 'put', requestOptions)
-        .then(function() {
+      return q.ninvoke(self, 'makeRequest', requestOptions)
+        .spread(function(response) {
+          // expexted
+          // status codes: 200, 400, 401, 403, 404
+          if (!response || response.statusCode !== 200) {
+            return q.reject(new Error('received invalid response'));
+          }
           // make subsequent calls for all editable extension attributes
           var promisesArray = _.map(entry.extattrDetails, function(extAttr) {
             if (editableFields.indexOf(extAttr.name) > -1) {
               var extAttrRequestOptions = _.omit(_.clone(requestOptions), ['qs', 'body', 'method']);
 
-              extAttrRequestOptions.uri = self._apiEntryPoint + authPath + extAttr.href.substringFrom(self._endpoint.host + self._endpoint.contextRoot);
+              extAttrRequestOptions.uri = authPath + extAttr.href.substringFrom(self.requestOptions.baseUrl);
 
-              var requestMethod = (entry.extattr[extAttr.name]) ? 'put' : 'delete';
+              extAttrRequestOptions.method = (entry.extattr[extAttr.name]) ? 'PUT' : 'DELETE';
 
-              if (requestMethod === 'put') {
+              if (extAttrRequestOptions.method === 'PUT') {
                 extAttrRequestOptions.body = decodeURIComponent(entry.extattr[extAttr.name]);
                 _.merge(extAttrRequestOptions.headers, {
-                  'Content-type': extAttr.type
+                  'content-type': extAttr.type
                 });
               }
-              return q.ninvoke(self, 'makeRequest', requestMethod, extAttrRequestOptions);
+              return q.ninvoke(self, 'makeRequest', extAttrRequestOptions);
             }
           });
           return q.all(promisesArray);
@@ -413,7 +392,7 @@ IbmConnectionsProfilesService.prototype.batchLoadEntries = function(entries, opt
   }
 
   entries.forEach(function(entry) {
-    self.getEntry(_.merge(options, _.pick(entry, ['userid', 'key', 'email'])));
+    self.getEntry(_.merge({}, options, _.pick(entry, ['userid', 'key', 'email'])));
   });
 };
 
@@ -421,13 +400,13 @@ IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
   var self = this;
   var error;
 
-  // @TODO: check if "key" is a valid parameter, too
   var qsValidParameters = [
+    'key',  // although not documented in the API, key works as well
     'email',
     'userid'
   ];
 
-  var requestOptions = _.merge(self.getRequestOptions(options), {
+  var requestOptions = _.merge(self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
@@ -437,17 +416,25 @@ IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + authPath + '/atom/profileService.do';
+  requestOptions.uri = authPath + '/atom/profileService.do';
 
-  var entrySelector = _.pick(requestOptions.qs, 'email', 'userid');
+  var entrySelector = _.pick(requestOptions.qs, qsValidParameters);
   if (_.size(entrySelector) !== 1) {
-    error = new Error(util.format('Wrong number of entry selectors provided to receive network connections: %j', entrySelector));
+    error = new Error(util.format('Wrong number of entry selectors provided to get editable fields: %j', entrySelector));
     error.status = 400;
     return q.reject(error);
   }
 
-  return q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.profileService)
-    .spread(extractDataFromRequestPromise);
+  return q.ninvoke(self, 'makeRequest', requestOptions)
+    .spread(function(response, body) {
+      // expexted
+      // status codes: 200, 400, 401
+      // content-type: application/atomsvc+xml
+      if (!response || response.statusCode !== 200 ||  !/application\/atomsvc\+xml/.test(response.headers['content-type'])) {
+        return q.reject(new Error('received invalid response'));
+      }
+      return responseParser.profileService(body).editableFields;
+    });
 };
 
 IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options) {
@@ -479,8 +466,7 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
       outputType: 'connection',
       page: 1
     },
-    ttl: 1800
-  }, self.getRequestOptions(options), {
+  }, self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
@@ -607,7 +593,7 @@ IbmConnectionsProfilesService.prototype.getNetworkState = function getNetworkSta
     qs: {
       connectionType: 'colleague',
     }
-  }, self.getRequestOptions(options), {
+  }, self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters)
   });
 
@@ -654,7 +640,7 @@ IbmConnectionsProfilesService.prototype.inviteNetworkContact = function inviteNe
     qs: {
       connectionType: 'colleague'
     }
-  }, self.getRequestOptions(options), {
+  }, self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       'Content-type': 'application/atom+xml'
@@ -698,7 +684,7 @@ IbmConnectionsProfilesService.prototype.getFollowedProfiles = function(options) 
       source: 'profiles',
       page: 1
     }
-  }, self.getRequestOptions(options), {
+  }, self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
@@ -791,7 +777,7 @@ IbmConnectionsProfilesService.prototype.getTags = function(options) {
   // construct the request options
   var requestOptions = _.merge({
     ttl: 1800
-  }, self.getRequestOptions(options), {
+  }, self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
@@ -856,7 +842,7 @@ IbmConnectionsProfilesService.prototype.updateTags = function(options) {
   ];
 
   // construct the request options
-  var requestOptions = _.merge(self.getRequestOptions(options), {
+  var requestOptions = _.merge(self.extractRequestParams(options), {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'

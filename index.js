@@ -64,8 +64,77 @@ var responseParser = {
     var result = {
       editableFields: Array.prototype.map.call(responseXML.getElementsByTagNameNS(xmlNS.snx, 'editableField'), function(element) {
         return element.getAttribute('name');
-      })
+      }),
+      links: {},
+      services: {},
+      extattrDetails: {}
     };
+
+    var serviceNames = [
+      'http://www.ibm.com/xmlns/prod/sn/service/activities',
+      'http://www.ibm.com/xmlns/prod/sn/service/dogear',
+      'http://www.ibm.com/xmlns/prod/sn/service/profiles',
+      'http://www.ibm.com/xmlns/prod/sn/service/communities',
+      'http://www.ibm.com/xmlns/prod/sn/service/files',
+      'http://www.ibm.com/xmlns/prod/sn/service/wikis',
+      'http://www.ibm.com/xmlns/prod/sn/service/forums',
+      'http://www.ibm.com/xmlns/prod/sn/service/blogs'
+    ];
+
+    var links = [
+      'http://www.ibm.com/xmlns/prod/sn/profile-type',
+      'http://www.ibm.com/xmlns/prod/sn/reporting-chain',
+      'http://www.ibm.com/xmlns/prod/sn/connections/colleague',
+      'http://www.ibm.com/xmlns/prod/sn/status',
+      'http://www.ibm.com/xmlns/prod/sn/mv/theboard',
+      'http://www.ibm.com/xmlns/prod/sn/tag-cloud'
+    ];
+
+    Array.prototype.forEach.call(responseXML.getElementsByTagNameNS(xmlNS.atom, 'link'), function(element) {
+      if (!element.hasAttribute('rel')) {
+        return;
+      }
+
+      var rel = element.getAttribute('rel'),
+        name;
+
+      // process extension attributes
+      if (rel === 'http://www.ibm.com/xmlns/prod/sn/ext-attr') {
+        var extensionId = element.getAttributeNS(xmlNS.snx, 'extensionId');
+        result.extattrDetails[extensionId] = {
+          name: extensionId,
+          type: element.getAttribute('type'),
+          href: element.getAttribute('href')
+        };
+        return;
+      }
+
+      // process profile type links
+      if (links.indexOf(rel) > -1) {
+        name = rel.split('http://www.ibm.com/xmlns/prod/sn/').pop();
+        result.links[name] = {
+          name: name,
+          rel: rel,
+          type: element.getAttribute('type'),
+          href: element.getAttribute('href')
+        };
+        return;
+      }
+
+      // at this point, we would only process service rels
+      if (serviceNames.indexOf(rel) < 0) {
+        return;
+      }
+
+      // process service rels
+      name = rel.split('/').pop();
+      result.services[name] = {
+        name: name,
+        rel: rel,
+        type: element.getAttribute('type'),
+        href: element.getAttribute('href')
+      };
+    });
 
     return result;
   },
@@ -90,19 +159,15 @@ var responseParser = {
     // also not implemented in xml library yet
     // parse extension attributes
     entry.extattrDetails = {};
-    try {
-      xml.find(responseXML, 'link[rel="http://www.ibm.com/xmlns/prod/sn/ext-attr"]').forEach(function(val) {
-        var extensionId = val.getAttributeNS(xmlNS.snx, 'extensionId');
-        entry.extattrDetails[extensionId] = {
-          name: extensionId,
-          type: val.getAttribute('type'),
-          href: val.getAttribute('href'),
-          content: entry.extattr[extensionId] || false
-        };
-      });
-    } catch (e) {
-      // @TODO logging
-    }
+    xml.find(responseXML, 'link[rel="http://www.ibm.com/xmlns/prod/sn/ext-attr"]').forEach(function(val) {
+      var extensionId = val.getAttributeNS(xmlNS.snx, 'extensionId');
+      entry.extattrDetails[extensionId] = {
+        name: extensionId,
+        type: val.getAttribute('type'),
+        href: val.getAttribute('href'),
+        content: entry.extattr[extensionId] || false
+      };
+    });
 
     return entry;
   },
@@ -266,6 +331,24 @@ function IbmConnectionsProfilesService(baseUrl, options) {
   }, options);
 
   OniyiHttpClient.call(self, options);
+
+  // @TODO: generalize this plugin
+  self.registerPlugin({
+    name: 'response.statusCode',
+    callback: function(next, err, response, body) {
+      if (err || !response) {
+        next.call(this, err, response, body);
+        return;
+      }
+      if (response.statusCode !== 200) {
+        var error = new Error('Wrong statusCode');
+        error.httpStatus = response.statusCode;
+        next.call(this, error, response, body);
+        return;
+      }
+      next.call(this, err, response, body);
+    }
+  });
 }
 util.inherits(IbmConnectionsProfilesService, OniyiHttpClient);
 
@@ -401,7 +484,7 @@ IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
   var error;
 
   var qsValidParameters = [
-    'key',  // although not documented in the API, key works as well
+    'key', // although not documented in the API, key works as well
     'email',
     'userid'
   ];

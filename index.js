@@ -331,26 +331,48 @@ function IbmConnectionsProfilesService(baseUrl, options) {
   }, options);
 
   OniyiHttpClient.call(self, options);
-
-  // @TODO: generalize this plugin
-  self.registerPlugin({
-    name: 'response.statusCode',
-    callback: function(next, err, response, body) {
-      if (err || !response) {
-        next.call(this, err, response, body);
-        return;
-      }
-      if (response.statusCode !== 200) {
-        var error = new Error('Wrong statusCode');
-        error.httpStatus = response.statusCode;
-        next.call(this, error, response, body);
-        return;
-      }
-      next.call(this, err, response, body);
-    }
-  });
 }
 util.inherits(IbmConnectionsProfilesService, OniyiHttpClient);
+
+IbmConnectionsProfilesService.prototype.getServiceDocument = function(options) {
+  var self = this;
+  var error;
+
+  var qsValidParameters = [
+    'key', // although not documented in the API, key works as well
+    'email',
+    'userid'
+  ];
+
+  var requestOptions = _.merge(self.extractRequestParams(options), {
+    qs: _.pick(options, qsValidParameters),
+    headers: {
+      accept: 'application/xml'
+    }
+  });
+
+  var authPath = getAuthPath(requestOptions);
+
+  requestOptions.uri = authPath + '/atom/profileService.do';
+
+  var entrySelector = _.pick(requestOptions.qs, qsValidParameters);
+  if (_.size(entrySelector) !== 1) {
+    error = new Error(util.format('Wrong number of entry selectors provided to get editable fields: %j', entrySelector));
+    error.status = 400;
+    return q.reject(error);
+  }
+
+  return q.ninvoke(self, 'makeRequest', requestOptions)
+    .spread(function(response, body) {
+      // expexted
+      // status codes: 200, 400, 401
+      // content-type: application/atomsvc+xml
+      if (!response || response.statusCode !== 200 ||  !/application\/atomsvc\+xml/.test(response.headers['content-type'])) {
+        return q.reject(new Error('received invalid response'));
+      }
+      return responseParser.profileService(body);
+    });
+};
 
 IbmConnectionsProfilesService.prototype.getEntry = function(options) {
   var self = this;
@@ -481,42 +503,10 @@ IbmConnectionsProfilesService.prototype.batchLoadEntries = function(entries, opt
 
 IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
   var self = this;
-  var error;
 
-  var qsValidParameters = [
-    'key', // although not documented in the API, key works as well
-    'email',
-    'userid'
-  ];
-
-  var requestOptions = _.merge(self.extractRequestParams(options), {
-    qs: _.pick(options, qsValidParameters),
-    headers: {
-      accept: 'application/xml'
-    },
-    disableCache: true
-  });
-
-  var authPath = getAuthPath(requestOptions);
-
-  requestOptions.uri = authPath + '/atom/profileService.do';
-
-  var entrySelector = _.pick(requestOptions.qs, qsValidParameters);
-  if (_.size(entrySelector) !== 1) {
-    error = new Error(util.format('Wrong number of entry selectors provided to get editable fields: %j', entrySelector));
-    error.status = 400;
-    return q.reject(error);
-  }
-
-  return q.ninvoke(self, 'makeRequest', requestOptions)
-    .spread(function(response, body) {
-      // expexted
-      // status codes: 200, 400, 401
-      // content-type: application/atomsvc+xml
-      if (!response || response.statusCode !== 200 ||  !/application\/atomsvc\+xml/.test(response.headers['content-type'])) {
-        return q.reject(new Error('received invalid response'));
-      }
-      return responseParser.profileService(body).editableFields;
+  return self.getServiceDocument(options)
+    .then(function(serviceDoc) {
+      return serviceDoc.editableFields;
     });
 };
 
@@ -559,7 +549,7 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + authPath + '/atom/connections.do';
+  requestOptions.uri = authPath + '/atom/connections.do';
 
   // checking validity and sanity of request options
   var entrySelector = _.pick(requestOptions.qs, 'email', 'key', 'userid');
@@ -604,7 +594,7 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
   }
 
 
-  var promise = q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.networkConnections)
+  var promise = q.ninvoke(self, 'makeRequest', requestOptions, responseParser.networkConnections)
     .spread(function(response, data) {
       // if this was not a call to fetch all the entry's network connections, we're done
       if (!options.fetchAll) {
@@ -665,8 +655,10 @@ IbmConnectionsProfilesService.prototype.getNetworkState = function getNetworkSta
   var error;
 
   var qsValidParameters = [
+    'targetUserid',
     'targetEmail',
     'targetKey',
+    'sourceUserid',
     'sourceEmail',
     'sourceKey'
   ];
@@ -677,37 +669,38 @@ IbmConnectionsProfilesService.prototype.getNetworkState = function getNetworkSta
       connectionType: 'colleague',
     }
   }, self.extractRequestParams(options), {
+    method: 'HEAD',
     qs: _.pick(options, qsValidParameters)
   });
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + '/follow' + authPath + '/atom/connections.do';
+  requestOptions.uri = authPath + '/atom/connection.do';
 
-  var targetSelector = _.pick(requestOptions.qs, 'targetEmail', 'targetKey');
+  var targetSelector = _.pick(requestOptions.qs, 'targetUserid', 'targetEmail', 'targetKey');
   if (_.size(targetSelector) !== 1) {
     error = new Error(util.format('Wrong number of targetEntry selectors provided to receive network state: %j', targetSelector));
     error.status = 400;
     return q.reject(error);
   }
-  var sourceSelector = _.pick(requestOptions.qs, 'sourceEmail', 'sourceKey');
+  var sourceSelector = _.pick(requestOptions.qs, 'sourceUserid', 'sourceEmail', 'sourceKey');
   if (_.size(sourceSelector) > 1) {
     error = new Error(util.format('Wrong number of sourceEntry selectors provided to receive network state: %j', sourceSelector));
     error.status = 400;
     return q.reject(error);
   }
 
-  return q.ninvoke(self, 'makeRequest', 'head', requestOptions, responseParser.profileEntry)
+  return q.ninvoke(self, 'makeRequest', requestOptions)
     .spread(function(response) {
-      var networkStatusHeaderName = 'X-Profiles-Connection-Status';
+      // var networkStatusHeaderName = 'X-Profiles-Connection-Status';
+      var networkStatusHeaderName = 'x-profiles-connection-status';
       if (response.statusCode === 404) {
         return false;
       }
       if (response.headers[networkStatusHeaderName] && ['accepted', 'pending', 'unconfirmed'].indexOf(response.headers[networkStatusHeaderName]) > -1) {
         return response.headers[networkStatusHeaderName];
       }
-
-      throw 'No valid network status found';
+      return q.reject(new Error('No valid network status found'));
     });
 };
 

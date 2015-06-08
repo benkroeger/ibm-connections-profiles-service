@@ -1,6 +1,6 @@
 #  [![NPM version][npm-image]][npm-url]
 
-> An IBM Connections Profiles API Wrapper, using the oniyi-request package for http and caching
+> An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction
 
 
 ## Install

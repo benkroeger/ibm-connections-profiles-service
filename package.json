@@ -1,7 +1,7 @@
 {
   "name": "ibm-connections-profiles-service",
-  "version": "0.0.3",
-  "description": "An IBM Connections Profiles API Wrapper, using the oniyi-request package for http and caching",
+  "version": "0.0.4",
+  "description": "An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction",
   "author": {
     "name": "Benjamin Kroeger",
     "email": "benjamin.kroeger@gmail.com"

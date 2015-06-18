@@ -26,67 +26,6 @@ var xmlTemplate = {
   },
   xmlNS = xml.nameSpaces;
 
-var vCardParser = new OniyiVCardParser({
-  vCardToJSONAttributeMapping: {
-    'UID': 'uid',
-    'ADR;WORK': 'workLocation',
-    'AGENT;VALUE=X_PROFILE_UID': false,
-    'CATEGORIES': 'tags',
-    'EMAIL;INTERNET': 'email',
-    'EMAIL;X_GROUPWARE_MAIL': 'groupwareEmail',
-    'FN': 'displayName',
-    'HONORIFIC_PREFIX': 'courtesyTitle',
-    'N': 'names',
-    'NICKNAME': 'preferredFirstName',
-    'ORG': 'organizationTitle',
-    'PHOTO;VALUE=URL': 'photo',
-    'REV': 'lastUpdate',
-    'ROLE': 'employeeTypeDesc',
-    'SOUND;VALUE=URL': 'pronounciation',
-    'TEL;CELL': 'mobileNumber',
-    'TEL;FAX': 'faxNumber',
-    'TEL;PAGER': 'ipTelephoneNumber',
-    'TEL;WORK': 'telephoneNumber',
-    'TEL;X_IP': 'ipTelephoneNumber',
-    'TITLE': 'jobResp',
-    'TZ': 'timezone',
-    'URL': 'url',
-    'X_ALTERNATE_LAST_NAME': 'alternateLastname',
-    'X_BLOG_URL;VALUE=URL': 'blogUrl',
-    'X_BUILDING': 'bldgId',
-    'X_COUNTRY_CODE': 'countryCode',
-    'X_DEPARTMENT_NUMBER': 'deptNumber',
-    'X_DEPARTMENT_TITLE': 'deptTitle',
-    'X_DESCRIPTION': 'description',
-    'X_EMPLOYEE_NUMBER': 'employeeNumber',
-    'X_EMPTYPE': 'employeeTypeCode',
-    'X_EXPERIENCE': 'experience',
-    'X_EXTENSION_PROPERTY;VALUE=X_EXTENSION_PROPERTY_ID': 'extattr',
-    'X_FLOOR': 'floor',
-    'X_IS_MANAGER': 'isManager',
-    'X_LCONN_USERID': 'userid',
-    'X_MANAGER_UID': 'managerUid',
-    'X_NATIVE_FIRST_NAME': 'nativeFirstName',
-    'X_NATIVE_LAST_NAME': 'nativeLastName',
-    'X_OFFICE_NUMBER': 'officeName',
-    'X_ORGANIZATION_CODE': 'orgId',
-    'X_PAGER_ID': 'pagerId',
-    'X_PAGER_PROVIDER': 'pagerServiceProvider',
-    'X_PAGER_TYPE': 'pagerType',
-    'X_PREFERRED_LANGUAGE': 'preferredLanguage',
-    'X_PREFERRED_LAST_NAME': 'preferredLastName',
-    'X_PROFILE_KEY': 'key',
-    'X_PROFILE_TYPE': 'profileType',
-    'X_PROFILE_UID': 'uid',
-    'X_SHIFT': false,
-    'X_WORKLOCATION_CODE': 'workLocationCode'
-  },
-  complexJSONAttributes: {
-    workLocation: ['skip_1', 'skip_2', 'address_1', 'address_2', 'city', 'state', 'postal_code' /*, 'country' Country is not implemented in Profiles API yet*/ ],
-    names: ['surname', 'givenName']
-  }
-});
-
 // local function definition
 function getAuthPath(requestOptions) {
   if (requestOptions.auth && _.isString(requestOptions.auth.bearer)) {
@@ -184,13 +123,13 @@ var responseParser = {
 
     return result;
   },
-  profileEntry: function parseProfileEntryResponse(responseXML) {
+  profileEntry: function parseProfileEntryResponse(responseXML, parser) {
     if (_.isString(responseXML)) {
       responseXML = xml.parse(responseXML);
     }
 
     // parse vCard String to JSON object
-    var entry = vCardParser.toObject((xml.find(responseXML, 'content[type="text"]')[0]).textContent);
+    var entry = parser.toObject((xml.find(responseXML, 'content[type="text"]')[0]).textContent);
 
     // parsing tags
     if (_.isString(entry.tags)) {
@@ -217,7 +156,7 @@ var responseParser = {
 
     return entry;
   },
-  networkConnections: function parseNetworkConnectionsResponse(responseXML) {
+  networkConnections: function parseNetworkConnectionsResponse(responseXML, vCardParser) {
     if (_.isString(responseXML)) {
       responseXML = xml.parse(responseXML);
     }
@@ -242,7 +181,7 @@ var responseParser = {
 
     if (_.isString(returnValue.paginationLinks.self) && returnValue.paginationLinks.self.containsIgnoreCase('outputType=profile')) {
       Array.prototype.forEach.call(responseXML.getElementsByTagName('entry'), function(entryXML) {
-        var entry = responseParser.profileEntry(entryXML);
+        var entry = responseParser.profileEntry(entryXML, vCardParser);
         if (entry && entry.userid) {
           returnValue.networkConnections[entry.userid] = entry;
         }
@@ -376,10 +315,72 @@ function IbmConnectionsProfilesService(baseUrl, options) {
       headers: {
         'user-agent': 'Mozilla/5.0'
       }
+    },
+    vCardParser: {
+      vCardToJSONAttributeMapping: {
+        'ADR;WORK': 'workLocation',
+        'AGENT;VALUE=X_PROFILE_UID': false,
+        'CATEGORIES': 'tags',
+        'EMAIL;INTERNET': 'email',
+        'EMAIL;X_GROUPWARE_MAIL': 'groupwareEmail',
+        'FN': 'displayName',
+        'HONORIFIC_PREFIX': 'courtesyTitle',
+        'N': 'names',
+        'NICKNAME': 'preferredFirstName',
+        'ORG': 'organizationTitle',
+        'PHOTO;VALUE=URL': 'photo',
+        'REV': 'lastUpdate',
+        'ROLE': 'employeeTypeDesc',
+        'SOUND;VALUE=URL': 'pronounciation',
+        'TEL;CELL': 'mobileNumber',
+        'TEL;FAX': 'faxNumber',
+        'TEL;PAGER': 'ipTelephoneNumber',
+        'TEL;WORK': 'telephoneNumber',
+        'TEL;X_IP': 'ipTelephoneNumber',
+        'TITLE': 'jobResp',
+        'TZ': 'timezone',
+        'UID': 'uid',
+        'URL': 'url',
+        'X_ALTERNATE_LAST_NAME': 'alternateLastname',
+        'X_BLOG_URL;VALUE=URL': 'blogUrl',
+        'X_BUILDING': 'bldgId',
+        'X_COUNTRY_CODE': 'countryCode',
+        'X_DEPARTMENT_NUMBER': 'deptNumber',
+        'X_DEPARTMENT_TITLE': 'deptTitle',
+        'X_DESCRIPTION': 'description',
+        'X_EMPLOYEE_NUMBER': 'employeeNumber',
+        'X_EMPTYPE': 'employeeTypeCode',
+        'X_EXPERIENCE': 'experience',
+        'X_EXTENSION_PROPERTY;VALUE=X_EXTENSION_PROPERTY_ID': 'extattr',
+        'X_FLOOR': 'floor',
+        'X_IS_MANAGER': 'isManager',
+        'X_LCONN_USERID': 'userid',
+        'X_MANAGER_UID': 'managerUid',
+        'X_NATIVE_FIRST_NAME': 'nativeFirstName',
+        'X_NATIVE_LAST_NAME': 'nativeLastName',
+        'X_OFFICE_NUMBER': 'officeName',
+        'X_ORGANIZATION_CODE': 'orgId',
+        'X_PAGER_ID': 'pagerId',
+        'X_PAGER_PROVIDER': 'pagerServiceProvider',
+        'X_PAGER_TYPE': 'pagerType',
+        'X_PREFERRED_LANGUAGE': 'preferredLanguage',
+        'X_PREFERRED_LAST_NAME': 'preferredLastName',
+        'X_PROFILE_KEY': 'key',
+        'X_PROFILE_TYPE': 'profileType',
+        'X_PROFILE_UID': 'uid',
+        'X_SHIFT': false,
+        'X_WORKLOCATION_CODE': 'workLocationCode'
+      },
+      complexJSONAttributes: {
+        workLocation: ['skip_1', 'skip_2', 'address_1', 'address_2', 'city', 'state', 'postal_code' /*, 'country' Country is not implemented in Profiles API yet*/ ],
+        names: ['surname', 'givenName']
+      }
     }
   }, options);
 
   OniyiHttpClient.call(self, options);
+
+  self.vCardParser = new OniyiVCardParser(options.vCardParser);
 }
 util.inherits(IbmConnectionsProfilesService, OniyiHttpClient);
 
@@ -469,7 +470,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
       if (!response || response.statusCode !== 200) {
         return q.reject(new Error('received invalid response'));
       }
-      return responseParser.profileEntry(body);
+      return responseParser.profileEntry(body, self.vCardParser);
     });
 };
 
@@ -499,7 +500,7 @@ IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
         qs: {
           userid: entry.userid
         },
-        body: util.format(xmlTemplate.entry, vCardParser.toVcard(entry, editableFields)),
+        body: util.format(xmlTemplate.entry, self.vCardParser.toVcard(entry, editableFields)),
         headers: {
           accept: 'application/atom+xml'
         }
@@ -645,7 +646,7 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
 
   var promise = q.ninvoke(self, 'makeRequest', requestOptions)
     .spread(extractDataFromRequestPromise)
-    .then(responseParser.networkConnections)
+    .then(responseParser.networkConnections, self.vCardParser)
     .then(function(data) {
       // if this was not a call to fetch all the entry's network connections, we're done
       if (!options.fetchAll) {
@@ -676,7 +677,7 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
 
         promisesArray.push(q.ninvoke(self, 'makeRequest', pageRequestOptions)
           .spread(extractDataFromRequestPromise)
-          .then(responseParser.networkConnections));
+          .then(responseParser.networkConnections, self.vCardParser));
       }
 
       return q.all(promisesArray).then(function(results) {

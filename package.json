@@ -1,6 +1,6 @@
 {
   "name": "ibm-connections-profiles-service",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction",
   "author": {
     "name": "Benjamin Kroeger",
@@ -23,7 +23,7 @@
   "dependencies": {
     "lodash": "~3.8.0",
     "oniyi-http-client": "benkroeger/oniyi-http-client",
-    "oniyi-vcard-parser": "~0.0.2",
+    "oniyi-vcard-parser": "~0.1.0",
     "prototypes": "~0.4.0",
     "q": "~1.4.0",
     "xmldom": "~0.1.19",

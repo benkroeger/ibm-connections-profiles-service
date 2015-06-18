@@ -7,7 +7,7 @@ var util = require('util');
 var _ = require('lodash'),
   q = require('q'),
   OniyiHttpClient = require('oniyi-http-client'),
-  oniyiVCardParser = require('oniyi-vcard-parser').factory;
+  OniyiVCardParser = require('oniyi-vcard-parser');
 
 var xml = require('./lib/xml-utils');
 
@@ -24,19 +24,66 @@ var xmlTemplate = {
     clients: 'http://www.ibm.com/xmlns/prod/sn/scheme/clients',
     skills: 'http://www.ibm.com/xmlns/prod/sn/scheme/skills'
   },
-  xmlNS = {
-    atom: 'http://www.w3.org/2005/Atom',
-    snx: 'http://www.ibm.com/xmlns/prod/sn',
-    app: 'http://www.w3.org/2007/app',
-    openSearch: 'http://a9.com/-/spec/opensearch/1.1/',
-    ibmsc: 'http://www.ibm.com/search/content/2010',
-    thr: 'http://purl.org/syndication/thread/1.0',
-    fh: 'http://purl.org/syndication/history/1.0'
-  };
+  xmlNS = xml.nameSpaces;
 
-var vCardParser = oniyiVCardParser({
+var vCardParser = new OniyiVCardParser({
   vCardToJSONAttributeMapping: {
-    'UID': 'uid'
+    'UID': 'uid',
+    'ADR;WORK': 'workLocation',
+    'AGENT;VALUE=X_PROFILE_UID': false,
+    'CATEGORIES': 'tags',
+    'EMAIL;INTERNET': 'email',
+    'EMAIL;X_GROUPWARE_MAIL': 'groupwareEmail',
+    'FN': 'displayName',
+    'HONORIFIC_PREFIX': 'courtesyTitle',
+    'N': 'names',
+    'NICKNAME': 'preferredFirstName',
+    'ORG': 'organizationTitle',
+    'PHOTO;VALUE=URL': 'photo',
+    'REV': 'lastUpdate',
+    'ROLE': 'employeeTypeDesc',
+    'SOUND;VALUE=URL': 'pronounciation',
+    'TEL;CELL': 'mobileNumber',
+    'TEL;FAX': 'faxNumber',
+    'TEL;PAGER': 'ipTelephoneNumber',
+    'TEL;WORK': 'telephoneNumber',
+    'TEL;X_IP': 'ipTelephoneNumber',
+    'TITLE': 'jobResp',
+    'TZ': 'timezone',
+    'URL': 'url',
+    'X_ALTERNATE_LAST_NAME': 'alternateLastname',
+    'X_BLOG_URL;VALUE=URL': 'blogUrl',
+    'X_BUILDING': 'bldgId',
+    'X_COUNTRY_CODE': 'countryCode',
+    'X_DEPARTMENT_NUMBER': 'deptNumber',
+    'X_DEPARTMENT_TITLE': 'deptTitle',
+    'X_DESCRIPTION': 'description',
+    'X_EMPLOYEE_NUMBER': 'employeeNumber',
+    'X_EMPTYPE': 'employeeTypeCode',
+    'X_EXPERIENCE': 'experience',
+    'X_EXTENSION_PROPERTY;VALUE=X_EXTENSION_PROPERTY_ID': 'extattr',
+    'X_FLOOR': 'floor',
+    'X_IS_MANAGER': 'isManager',
+    'X_LCONN_USERID': 'userid',
+    'X_MANAGER_UID': 'managerUid',
+    'X_NATIVE_FIRST_NAME': 'nativeFirstName',
+    'X_NATIVE_LAST_NAME': 'nativeLastName',
+    'X_OFFICE_NUMBER': 'officeName',
+    'X_ORGANIZATION_CODE': 'orgId',
+    'X_PAGER_ID': 'pagerId',
+    'X_PAGER_PROVIDER': 'pagerServiceProvider',
+    'X_PAGER_TYPE': 'pagerType',
+    'X_PREFERRED_LANGUAGE': 'preferredLanguage',
+    'X_PREFERRED_LAST_NAME': 'preferredLastName',
+    'X_PROFILE_KEY': 'key',
+    'X_PROFILE_TYPE': 'profileType',
+    'X_PROFILE_UID': 'uid',
+    'X_SHIFT': false,
+    'X_WORKLOCATION_CODE': 'workLocationCode'
+  },
+  complexJSONAttributes: {
+    workLocation: ['skip_1', 'skip_2', 'address_1', 'address_2', 'city', 'state', 'postal_code' /*, 'country' Country is not implemented in Profiles API yet*/ ],
+    names: ['surname', 'givenName']
   }
 });
 
@@ -60,7 +107,6 @@ var responseParser = {
       responseXML = xml.parse(responseXML);
     }
 
-    // @TODO: parse extension attributes and application links
     var result = {
       editableFields: Array.prototype.map.call(responseXML.getElementsByTagNameNS(xmlNS.snx, 'editableField'), function(element) {
         return element.getAttribute('name');
@@ -177,8 +223,10 @@ var responseParser = {
     }
     var returnValue = {};
 
+
     // extract pagination information from received XML
-    var paginationLinkElements = xml.select(responseXML, util.format("/*[local-name()='feed' and namespace-uri()='%s']/*[local-name()='link' and namespace-uri()='%s']", xmlNS.atom, xmlNS.atom));
+    var paginationLinkElements = xml.select('//atom:feed/atom:link[@class="vcard"]', responseXML);
+    // var paginationLinkElements = xml.select(responseXML, util.format("/*[local-name()='feed' and namespace-uri()='%s']/*[local-name()='link' and namespace-uri()='%s']", xmlNS.atom, xmlNS.atom));
     if (paginationLinkElements.length > 0) {
       returnValue.paginationLinks = {};
       Array.prototype.forEach.call(paginationLinkElements, function(element) {
@@ -242,7 +290,8 @@ var responseParser = {
     var returnValue = {};
 
     // extract pagination information from received XML
-    var paginationLinkElements = xml.select(responseXML, util.format("/*[local-name()='feed' and namespace-uri()='%s']/*[local-name()='link' and namespace-uri()='%s']", xmlNS.atom, xmlNS.atom));
+    var paginationLinkElements = xml.select('//atom:feed/atom:link[@class="vcard"]', responseXML);
+    // var paginationLinkElements = xml.select(responseXML, util.format("/*[local-name()='feed' and namespace-uri()='%s']/*[local-name()='link' and namespace-uri()='%s']", xmlNS.atom, xmlNS.atom));
     if (paginationLinkElements.length > 0) {
       returnValue.paginationLinks = {};
       Array.prototype.forEach.call(paginationLinkElements, function(element) {
@@ -594,11 +643,13 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
   }
 
 
-  var promise = q.ninvoke(self, 'makeRequest', requestOptions, responseParser.networkConnections)
-    .spread(function(response, data) {
+  var promise = q.ninvoke(self, 'makeRequest', requestOptions)
+    .spread(extractDataFromRequestPromise)
+    .then(responseParser.networkConnections)
+    .then(function(data) {
       // if this was not a call to fetch all the entry's network connections, we're done
       if (!options.fetchAll) {
-        return extractDataFromRequestPromise(response, data);
+        return data;
       }
 
       // if it was... but all results fit into a single request, we're don, too
@@ -623,8 +674,9 @@ IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options
           }
         });
 
-        promisesArray.push(q.ninvoke(self, 'makeRequest', 'get', pageRequestOptions, responseParser.networkConnections)
-          .spread(extractDataFromRequestPromise));
+        promisesArray.push(q.ninvoke(self, 'makeRequest', pageRequestOptions)
+          .spread(extractDataFromRequestPromise)
+          .then(responseParser.networkConnections));
       }
 
       return q.all(promisesArray).then(function(results) {
@@ -717,6 +769,7 @@ IbmConnectionsProfilesService.prototype.inviteNetworkContact = function inviteNe
       connectionType: 'colleague'
     }
   }, self.extractRequestParams(options), {
+    method: 'POST',
     qs: _.pick(options, qsValidParameters),
     headers: {
       'Content-type': 'application/atom+xml'
@@ -726,10 +779,10 @@ IbmConnectionsProfilesService.prototype.inviteNetworkContact = function inviteNe
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + authPath + '/atom/connections.do';
+  requestOptions.uri = authPath + '/atom/connection.do';
 
 
-  return q.ninvoke(self, 'makeRequest', 'post', requestOptions)
+  return q.ninvoke(self, 'makeRequest', requestOptions)
     .spread(function(response) {
       if (response.statusCode === 400) {
         // logDebug('There is a pending invitation from {%s} to {%s} already', sourceentry.userid, targetentry.userid);
@@ -769,7 +822,7 @@ IbmConnectionsProfilesService.prototype.getFollowedProfiles = function(options) 
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + '/follow' + authPath + '/atom/resources';
+  requestOptions.uri = '/follow' + authPath + '/atom/resources';
 
   // the connections API does not allow page-sizes larger than 20
   // if fetchAll is set to "true", we increase the page size to maximum
@@ -781,11 +834,13 @@ IbmConnectionsProfilesService.prototype.getFollowedProfiles = function(options) 
     options.fetchAll = true;
   }
 
-  var promise = q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.followedProfiles)
-    .spread(function(response, data) {
+  var promise = q.ninvoke(self, 'makeRequest', requestOptions)
+    .spread(extractDataFromRequestPromise)
+    .then(responseParser.followedProfiles)
+    .then(function(data) {
       // if this was not a call to fetch all the entry's network connections, we're done
       if (!options.fetchAll) {
-        return extractDataFromRequestPromise(response, data);
+        return data;
       }
 
       // if it was... but all results fit into a single request, we're don, too
@@ -810,8 +865,9 @@ IbmConnectionsProfilesService.prototype.getFollowedProfiles = function(options) 
           }
         });
 
-        promisesArray.push(q.ninvoke(self, 'makeRequest', 'get', pageRequestOptions, responseParser.followedProfiles)
-          .spread(extractDataFromRequestPromise));
+        promisesArray.push(q.ninvoke(self, 'makeRequest', pageRequestOptions)
+          .spread(extractDataFromRequestPromise)
+          .then(responseParser.followedProfiles));
       }
 
       return q.all(promisesArray).then(function(results) {
@@ -862,7 +918,7 @@ IbmConnectionsProfilesService.prototype.getTags = function(options) {
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + '/follow' + authPath + '/atom/profileTags.do';
+  requestOptions.uri = '/follow' + authPath + '/atom/profileTags.do';
 
   var targetSelector = _.pick(requestOptions.qs, 'targetEmail', 'targetKey');
   if (_.size(targetSelector) !== 1) {
@@ -882,11 +938,9 @@ IbmConnectionsProfilesService.prototype.getTags = function(options) {
     requestOptions.qs.format = 'lite';
   }
 
-  var promise = q.ninvoke(self, 'makeRequest', 'get', requestOptions, responseParser.profileEntry)
-    .spread(function(response, data) {
-      // @TODO: need to check if data was processed successfully
-      return data;
-    });
+  var promise = q.ninvoke(self, 'makeRequest', requestOptions)
+    .spread(extractDataFromRequestPromise)
+    .then(responseParser.profileTags);
 
   // when promise is fulfilled, start prefetching all involved profile entries
   promise.then(function(result) {
@@ -919,6 +973,7 @@ IbmConnectionsProfilesService.prototype.updateTags = function(options) {
 
   // construct the request options
   var requestOptions = _.merge(self.extractRequestParams(options), {
+    method: 'PUT',
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
@@ -927,7 +982,7 @@ IbmConnectionsProfilesService.prototype.updateTags = function(options) {
 
   var authPath = getAuthPath(requestOptions);
 
-  requestOptions.uri = self.apiEntryPoint + authPath + '/atom/profileTags.do';
+  requestOptions.uri = authPath + '/atom/profileTags.do';
 
   var targetSelector = _.pick(requestOptions.qs, 'targetEmail', 'targetKey');
   if (_.size(targetSelector) !== 1) {
@@ -962,7 +1017,7 @@ IbmConnectionsProfilesService.prototype.updateTags = function(options) {
   // this might require the XMLSerializer.serializeToString(tagsDoc) from xmldom package
   requestOptions.body = tagsDoc.toString();
 
-  return q.ninvoke(self, 'makeRequest', 'put', requestOptions)
+  return q.ninvoke(self, 'makeRequest', requestOptions)
     .spread(extractDataFromRequestPromise);
 };
 

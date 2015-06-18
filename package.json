@@ -27,7 +27,7 @@
     "prototypes": "~0.4.0",
     "q": "~1.4.0",
     "xmldom": "~0.1.19",
-    "xpath.js": "~1.0.5"
+    "xpath": "0.0.9"
   },
   "devDependencies": {
     "grunt-cli": "^0.1.13",

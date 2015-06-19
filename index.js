@@ -319,7 +319,7 @@ function IbmConnectionsProfilesService(baseUrl, options) {
     vCardParser: {
       vCardToJSONAttributeMapping: {
         'ADR;WORK': 'workLocation',
-        'AGENT;VALUE=X_PROFILE_UID': false,
+        'AGENT;VALUE=X_PROFILE_UID': 'secretary',
         'CATEGORIES': 'tags',
         'EMAIL;INTERNET': 'email',
         'EMAIL;X_GROUPWARE_MAIL': 'groupwareEmail',
@@ -334,12 +334,12 @@ function IbmConnectionsProfilesService(baseUrl, options) {
         'SOUND;VALUE=URL': 'pronounciation',
         'TEL;CELL': 'mobileNumber',
         'TEL;FAX': 'faxNumber',
-        'TEL;PAGER': 'ipTelephoneNumber',
+        'TEL;PAGER': 'pagerNumber',
         'TEL;WORK': 'telephoneNumber',
         'TEL;X_IP': 'ipTelephoneNumber',
         'TITLE': 'jobResp',
         'TZ': 'timezone',
-        'UID': 'uid',
+        'UID': 'guid',
         'URL': 'url',
         'X_ALTERNATE_LAST_NAME': 'alternateLastname',
         'X_BLOG_URL;VALUE=URL': 'blogUrl',
@@ -368,11 +368,11 @@ function IbmConnectionsProfilesService(baseUrl, options) {
         'X_PROFILE_KEY': 'key',
         'X_PROFILE_TYPE': 'profileType',
         'X_PROFILE_UID': 'uid',
-        'X_SHIFT': false,
+        'X_SHIFT': 'shift',
         'X_WORKLOCATION_CODE': 'workLocationCode'
       },
       complexJSONAttributes: {
-        workLocation: ['skip_1', 'skip_2', 'address_1', 'address_2', 'city', 'state', 'postal_code' /*, 'country' Country is not implemented in Profiles API yet*/ ],
+        workLocation: ['skip_1', 'skip_2', 'address_1', 'address_2', 'city', 'state', 'postal_code', 'country' /* Country is not implemented for writing in Profiles API --> when reading, this value get's resolved from "countryCode" */ ],
         names: ['surname', 'givenName']
       }
     }

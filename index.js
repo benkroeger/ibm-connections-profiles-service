@@ -164,7 +164,7 @@ var responseParser = {
 
 
     // extract pagination information from received XML
-    var paginationLinkElements = xml.select('//atom:feed/atom:link[@class="vcard"]', responseXML);
+    var paginationLinkElements = xml.select('/atom:feed/atom:link[@rel]', responseXML);
     // var paginationLinkElements = xml.select(responseXML, util.format("/*[local-name()='feed' and namespace-uri()='%s']/*[local-name()='link' and namespace-uri()='%s']", xmlNS.atom, xmlNS.atom));
     if (paginationLinkElements.length > 0) {
       returnValue.paginationLinks = {};
@@ -229,7 +229,7 @@ var responseParser = {
     var returnValue = {};
 
     // extract pagination information from received XML
-    var paginationLinkElements = xml.select('//atom:feed/atom:link[@class="vcard"]', responseXML);
+    var paginationLinkElements = xml.select('/atom:feed/atom:link[@rel]', responseXML);
     // var paginationLinkElements = xml.select(responseXML, util.format("/*[local-name()='feed' and namespace-uri()='%s']/*[local-name()='link' and namespace-uri()='%s']", xmlNS.atom, xmlNS.atom));
     if (paginationLinkElements.length > 0) {
       returnValue.paginationLinks = {};
@@ -723,7 +723,18 @@ IbmConnectionsProfilesService.prototype.getNetworkState = function getNetworkSta
     }
   }, self.extractRequestParams(options), {
     method: 'HEAD',
-    qs: _.pick(options, qsValidParameters)
+    qs: _.pick(options, qsValidParameters),
+    ttl: 300,
+    responseValidators: [function(response, evaluator) {
+      // overriding cache storable validation
+      // ibm connections sends an HTTP/404 as response to HEAD requests if the two people are no network contacts
+      if (response.statusCode === 404) {
+         // response.headers['x-profiles-connection-status']
+        evaluator.flagStorable(true);
+        return true;
+      }
+      return false;
+    }]
   });
 
   var authPath = getAuthPath(requestOptions);

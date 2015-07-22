@@ -129,7 +129,7 @@ var responseParser = {
     }
 
     // parse vCard String to JSON object
-    var entry = parser.toObject((xml.find(responseXML, 'content[type="text"]')[0]).textContent);
+    var entry = parser.toObject(xml.select('/atom:entry/atom:content[@type="text"]/text()', responseXML).toString());
 
     // parsing tags
     if (_.isString(entry.tags)) {
@@ -140,19 +140,6 @@ var responseParser = {
     if (!Array.isArray(entry.tags)) {
       entry.tags = [];
     }
-
-    // also not implemented in xml library yet
-    // parse extension attributes
-    entry.extattrDetails = {};
-    xml.find(responseXML, 'link[rel="http://www.ibm.com/xmlns/prod/sn/ext-attr"]').forEach(function(val) {
-      var extensionId = val.getAttributeNS(xmlNS.snx, 'extensionId');
-      entry.extattrDetails[extensionId] = {
-        name: extensionId,
-        type: val.getAttribute('type'),
-        href: val.getAttribute('href'),
-        content: entry.extattr[extensionId] || false
-      };
-    });
 
     return entry;
   },
@@ -187,24 +174,24 @@ var responseParser = {
         }
       });
     } else {
-      Array.prototype.forEach.call(responseXML.getElementsByTagName('entry'), function(entry) {
+      Array.prototype.forEach.call(xml.select('/atom:feed/atom:entry', responseXML), function(entry) {
         // could also detect who initialized the connection (author vs. contributor)
         var connection = {
-          id: entry.getElementsByTagName('id')[0].textContent.substringFrom('tag:profiles.ibm.com,2006:entry'),
-          type: (xml.find(entry, 'category[scheme="http://www.ibm.com/xmlns/prod/sn/type"]')[0]).getAttribute('term'),
-          connectionType: (xml.find(entry, 'category[scheme="http://www.ibm.com/xmlns/prod/sn/connection/type"]')[0]).getAttribute('term'),
-          status: (xml.find(entry, 'category[scheme="http://www.ibm.com/xmlns/prod/sn/status"]')[0]).getAttribute('term'),
-          updated: entry.getElementsByTagName('updated')[0].textContent,
-          message: entry.getElementsByTagName('content')[0].textContent,
-          summary: entry.getElementsByTagName('summary')[0].textContent,
+          id: xml.select('atom:id/text()', entry).toString().substringFrom('tag:profiles.ibm.com,2006:entry'),
+          type: xml.select('atom:category[@scheme="http://www.ibm.com/xmlns/prod/sn/type"]/@term', entry).value,
+          connectionType: xml.select('atom:category[@scheme="http://www.ibm.com/xmlns/prod/sn/connection/type"]/@term', entry).value,
+          status: xml.select('atom:category[@scheme="http://www.ibm.com/xmlns/prod/sn/status"]/@term', entry).value,
+          updated: xml.select('atom:updated/text()', entry).toString(),
+          message: xml.select('atom:content/text()', entry).toString(),
+          summary: xml.select('atom:summary/text()', entry).toString(),
           links: {
             self: {
-              href: (xml.find(entry, 'link[rel="self"]')[0]).getAttribute('href'),
-              type: (xml.find(entry, 'link[rel="self"]')[0]).getAttribute('type')
+              href: xml.select('atom:link[@rel="self"]/@href', entry).value,
+              type: xml.select('atom:link[@rel="self"]/@type', entry).value 
             },
             edit: {
-              href: (xml.find(entry, 'link[rel="edit"]')[0]).getAttribute('href'),
-              type: (xml.find(entry, 'link[rel="edit"]')[0]).getAttribute('type')
+              href: xml.select('atom:link[@rel="edit"]/@href', entry).value,
+              type: xml.select('atom:link[@rel="edit"]/@type', entry).value
             }
           }
         };
@@ -384,7 +371,7 @@ function IbmConnectionsProfilesService(baseUrl, options) {
 }
 util.inherits(IbmConnectionsProfilesService, OniyiHttpClient);
 
-IbmConnectionsProfilesService.prototype.getServiceDocument = function(options) {
+IbmConnectionsProfilesService.prototype.getServiceDocument = function getServiceDocument(options) {
   var self = this;
   var error;
 
@@ -424,7 +411,7 @@ IbmConnectionsProfilesService.prototype.getServiceDocument = function(options) {
     });
 };
 
-IbmConnectionsProfilesService.prototype.getEntry = function(options) {
+IbmConnectionsProfilesService.prototype.getEntry = function getEntry(options) {
   var self = this;
   var error;
 
@@ -474,7 +461,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function(options) {
     });
 };
 
-IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
+IbmConnectionsProfilesService.prototype.updateEntry = function updateEntry(options) {
   var self = this;
   var error;
 
@@ -540,7 +527,7 @@ IbmConnectionsProfilesService.prototype.updateEntry = function(options) {
     });
 };
 
-IbmConnectionsProfilesService.prototype.batchLoadEntries = function(entries, options) {
+IbmConnectionsProfilesService.prototype.batchLoadEntries = function batchLoadEntries(entries, options) {
   var self = this;
   if (!_.isArray(entries)) {
     return;
@@ -551,7 +538,7 @@ IbmConnectionsProfilesService.prototype.batchLoadEntries = function(entries, opt
   });
 };
 
-IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
+IbmConnectionsProfilesService.prototype.getEditableFields = function getEditableFields(options) {
   var self = this;
 
   return self.getServiceDocument(options)
@@ -560,7 +547,7 @@ IbmConnectionsProfilesService.prototype.getEditableFields = function(options) {
     });
 };
 
-IbmConnectionsProfilesService.prototype.getNetworkConnections = function(options) {
+IbmConnectionsProfilesService.prototype.getNetworkConnections = function getNetworkConnections(options) {
   var self = this;
   var error;
 
@@ -729,7 +716,7 @@ IbmConnectionsProfilesService.prototype.getNetworkState = function getNetworkSta
       // overriding cache storable validation
       // ibm connections sends an HTTP/404 as response to HEAD requests if the two people are no network contacts
       if (response.statusCode === 404) {
-         // response.headers['x-profiles-connection-status']
+        // response.headers['x-profiles-connection-status']
         evaluator.flagStorable(true);
         return true;
       }
@@ -808,7 +795,7 @@ IbmConnectionsProfilesService.prototype.inviteNetworkContact = function inviteNe
     });
 };
 
-IbmConnectionsProfilesService.prototype.getFollowedProfiles = function(options) {
+IbmConnectionsProfilesService.prototype.getFollowedProfiles = function getFollowedProfiles(options) {
   var self = this;
 
   var qsValidParameters = [
@@ -905,7 +892,7 @@ IbmConnectionsProfilesService.prototype.getFollowedProfiles = function(options) 
   return promise;
 };
 
-IbmConnectionsProfilesService.prototype.getTags = function(options) {
+IbmConnectionsProfilesService.prototype.getTags = function getTags(options) {
   var self = this;
   var error;
 
@@ -966,7 +953,7 @@ IbmConnectionsProfilesService.prototype.getTags = function(options) {
   return promise;
 };
 
-IbmConnectionsProfilesService.prototype.updateTags = function(options) {
+IbmConnectionsProfilesService.prototype.updateTags = function updateTags(options) {
   var self = this;
   var error;
 
@@ -1033,7 +1020,7 @@ IbmConnectionsProfilesService.prototype.updateTags = function(options) {
     .spread(extractDataFromRequestPromise);
 };
 
-IbmConnectionsProfilesService.prototype.addTags = function(options) {
+IbmConnectionsProfilesService.prototype.addTags = function addTags(options) {
   var self = this,
     error;
 
@@ -1070,7 +1057,7 @@ IbmConnectionsProfilesService.prototype.addTags = function(options) {
     });
 };
 
-IbmConnectionsProfilesService.prototype.removeTags = function(options) {
+IbmConnectionsProfilesService.prototype.removeTags = function removeTags(options) {
   var self = this,
     error;
 

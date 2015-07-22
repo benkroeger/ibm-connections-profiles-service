@@ -129,7 +129,14 @@ var responseParser = {
     }
 
     // parse vCard String to JSON object
-    var entry = parser.toObject(xml.select('/atom:entry/atom:content[@type="text"]/text()', responseXML).toString());
+    var vcardString = xml.select('/atom:entry/atom:content[@type="text"]/text()', responseXML).toString();
+    if (vcardString === '') {
+      var error = new Error('No vcard content found in entry document');
+      error.httpStatus = 404;
+      throw error;
+    }
+    
+    var entry = parser.toObject(vcardString);
 
     // parsing tags
     if (_.isString(entry.tags)) {
@@ -455,7 +462,9 @@ IbmConnectionsProfilesService.prototype.getEntry = function getEntry(options) {
       // status codes: 200, 403, 404
       // content-type: application/atom+xml
       if (!response || response.statusCode !== 200) {
-        return q.reject(new Error('received invalid response'));
+        error = new Error(body || 'received invalid response');
+        error.httpStatus = response.httpStatus;
+        return q.reject(error);
       }
       return responseParser.profileEntry(body, self.vCardParser);
     });

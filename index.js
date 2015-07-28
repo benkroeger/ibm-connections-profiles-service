@@ -369,12 +369,16 @@ function IbmConnectionsProfilesService(baseUrl, options) {
         workLocation: ['skip_1', 'skip_2', 'address_1', 'address_2', 'city', 'state', 'postal_code', 'country' /* Country is not implemented for writing in Profiles API --> when reading, this value get's resolved from "countryCode" */ ],
         names: ['surname', 'givenName']
       }
+    },
+    ttl: {
+      networkState: 300
     }
   }, options);
 
   OniyiHttpClient.call(self, options);
 
   self.vCardParser = new OniyiVCardParser(options.vCardParser);
+  self._options = options;
 }
 util.inherits(IbmConnectionsProfilesService, OniyiHttpClient);
 
@@ -720,7 +724,7 @@ IbmConnectionsProfilesService.prototype.getNetworkState = function getNetworkSta
   }, self.extractRequestParams(options), {
     method: 'HEAD',
     qs: _.pick(options, qsValidParameters),
-    ttl: 300,
+    ttl: self._options.ttl.networkState,
     responseValidators: [function(response, evaluator) {
       // overriding cache storable validation
       // ibm connections sends an HTTP/404 as response to HEAD requests if the two people are no network contacts

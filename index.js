@@ -135,7 +135,7 @@ var responseParser = {
       error.httpStatus = 404;
       throw error;
     }
-    
+
     var entry = parser.toObject(vcardString);
 
     // parsing tags
@@ -194,7 +194,7 @@ var responseParser = {
           links: {
             self: {
               href: xml.select('atom:link[@rel="self"]/@href', entry).value,
-              type: xml.select('atom:link[@rel="self"]/@type', entry).value 
+              type: xml.select('atom:link[@rel="self"]/@type', entry).value
             },
             edit: {
               href: xml.select('atom:link[@rel="edit"]/@href', entry).value,
@@ -306,9 +306,8 @@ function IbmConnectionsProfilesService(baseUrl, options) {
   options = _.merge({
     requestOptions: {
       baseUrl: baseUrl,
-      headers: {
-        'user-agent': 'Mozilla/5.0'
-      }
+      headers: {},
+      followRedirect: false
     },
     vCardParser: {
       vCardToJSONAttributeMapping: {
@@ -371,6 +370,7 @@ function IbmConnectionsProfilesService(baseUrl, options) {
       }
     },
     ttl: {
+      profileEntry: false,
       networkState: 300
     }
   }, options);
@@ -443,7 +443,8 @@ IbmConnectionsProfilesService.prototype.getEntry = function getEntry(options) {
     qs: _.pick(options, qsValidParameters),
     headers: {
       accept: 'application/xml'
-    }
+    },
+    ttl: self._options.ttl.profileEntry
   });
 
   var authPath = getAuthPath(requestOptions);

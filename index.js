@@ -468,7 +468,7 @@ IbmConnectionsProfilesService.prototype.getEntry = function getEntry(options) {
       // content-type: application/atom+xml
       if (!response || response.statusCode !== 200) {
         error = new Error(body || 'received invalid response');
-        error.httpStatus = response.httpStatus;
+        error.httpStatus = response.statausCode;
         return q.reject(error);
       }
       return responseParser.profileEntry(body, self.vCardParser);

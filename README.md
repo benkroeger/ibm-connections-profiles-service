@@ -1,5 +1,3 @@
-#  [![NPM version][npm-image]][npm-url]
-
 > An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction
 
 

@@ -1,0 +1,5 @@
+<entry xmlns="http://www.w3.org/2005/Atom">
+  <category term="profiles" scheme="http://www.ibm.com/xmlns/prod/sn/source"></category>
+  <category term="profile" scheme="http://www.ibm.com/xmlns/prod/sn/resource-type"></category>
+  <category term="%s" scheme="http://www.ibm.com/xmlns/prod/sn/resource-id"></category>
+</entry>

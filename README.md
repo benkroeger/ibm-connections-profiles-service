@@ -15,19 +15,19 @@ $ npm install --save ibm-connections-profiles-service
 ```js
 var IbmConnectionsProfilesService = require('ibm-connections-profiles-service');
 
-var profiles = new IbmConnectionsProfilesService();
+var profiles = new IbmConnectionsProfilesService('http://my-server.example.com/profiles');
 
-profiles.getEntry({email: 'fritz@brause.de'}).then(function(profileEntry){
-	console.log(profileEntry);
+var options = {} // request options --> use to set options for oniyi-http-client's request
+
+profiles.getEntry({email: 'fritz@brause.de'}, options, function(err, profileEntry){
+  console.log(profileEntry);
 });
 
 ```
 
+## Breaking change in 1.0.0
+- no promises anymore, all is with callbacks
 
 ## License
 
 MIT © [Benjamin Kroeger]()
-
-
-[npm-url]: https://npmjs.org/package/ibm-connections-profiles
-[npm-image]: https://badge.fury.io/js/ibm-connections-profiles.svg

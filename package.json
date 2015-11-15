@@ -1,17 +1,16 @@
 {
   "name": "ibm-connections-profiles-service",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "description": "An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction",
+  "homepage": "",
   "author": {
     "name": "Benjamin Kroeger",
     "email": "benjamin.kroeger@gmail.com"
   },
-  "repository": "benkroeger/ibm-connections-profiles-service",
-  "license": "MIT",
   "files": [
-    "index.js",
     "lib"
   ],
+  "main": "lib/index.js",
   "keywords": [
     "ibm-connections-profiles",
     "ibm-connections",
@@ -20,26 +19,26 @@
     "profiles",
     "oniyi"
   ],
+  "repository": "benkroeger/ibm-connections-profiles-service",
+  "license": "MIT",
   "dependencies": {
-    "lodash": "~3.9.3",
+    "async": "1.5.0",
+    "lodash": "~3.10.1",
     "oniyi-http-client": "benkroeger/oniyi-http-client",
-    "oniyi-vcard-parser": "~0.2.0",
-    "prototypes": "~0.4.0",
-    "q": "~1.4.0",
-    "xmldom": "~0.1.19",
-    "xpath": "~0.0.9"
+    "oniyi-utils-xml": "0.1.0",
+    "oniyi-vcard-parser": "~0.2.0"
   },
   "devDependencies": {
-    "grunt-cli": "^0.1.13",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-contrib-nodeunit": "^0.4.1",
-    "grunt-contrib-watch": "^0.6.1",
-    "load-grunt-tasks": "^3.1.0",
-    "time-grunt": "^1.1.1",
-    "grunt-mocha-cli": "^1.11.0",
-    "jshint-stylish": "^1.0.0"
+    "gulp": "^3.6.0",
+    "gulp-eslint": "^1.0.0",
+    "gulp-exclude-gitignore": "^1.0.0",
+    "gulp-istanbul": "^0.10.2",
+    "gulp-mocha": "^2.0.0",
+    "gulp-plumber": "^1.0.0",
+    "gulp-nsp": "^2.1.0"
   },
   "scripts": {
-    "test": "grunt"
+    "test": "gulp",
+    "prepublish": "gulp prepublish"
   }
 }

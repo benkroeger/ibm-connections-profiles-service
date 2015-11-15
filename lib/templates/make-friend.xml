@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <entry xmlns="http://www.w3.org/2005/Atom" xmlns:snx="http://www.ibm.com/xmlns/prod/sn">
+    <category term="connection" scheme="http://www.ibm.com/xmlns/prod/sn/type" />
+    <category term="colleague" scheme="http://www.ibm.com/xmlns/prod/sn/connection/type" />
+    <category term="pending" scheme="http://www.ibm.com/xmlns/prod/sn/status" />
+    <!-- Message to other user -->
+    <content type="html">%s</content>
+  </entry>

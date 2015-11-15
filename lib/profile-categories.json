@@ -1,0 +1,6 @@
+{
+  "general": false,
+  "industries": "http://www.ibm.com/xmlns/prod/sn/scheme/industries",
+  "clients": "http://www.ibm.com/xmlns/prod/sn/scheme/clients",
+  "skills": "http://www.ibm.com/xmlns/prod/sn/scheme/skills"
+}

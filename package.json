@@ -1,6 +1,6 @@
 {
   "name": "ibm-connections-profiles-service",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction",
   "homepage": "",
   "author": {

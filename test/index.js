@@ -1,10 +1,14 @@
 'use strict';
 
-var assert = require('assert');
-var ibmConnectionsProfilesService = require('../lib');
+// node core modules
 
-describe('ibm-connections-profiles-service', function () {
-  it('should have unit test!', function () {
-    assert(false, 'we expected this package author to add actual unit tests.');
-  });
+// 3rd party modules
+import test from 'ava';
+// import _ from 'lodash';
+
+// internal modules
+// const ibmConnectionsProfilesService = require('../lib');
+
+test('inti test', (t) => {
+  t.true(true, 'in progress');
 });

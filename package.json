@@ -30,9 +30,8 @@
     "oniyi-vcard-parser": "1.0.0"
   },
   "devDependencies": {
-    "ava": "^0.18.2",
-    "babel-eslint": "^7.1.1",
-    "dotenv": "^4.0.0",
+    "ava": "0.19.1",
+    "dotenv": "4.0.0",
     "eslint": "3.15.0",
     "eslint-config-oniyi": "4.4.0",
     "eslint-plugin-ava": "4.2.0"

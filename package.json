@@ -35,14 +35,7 @@
     "dotenv": "^4.0.0",
     "eslint": "3.15.0",
     "eslint-config-oniyi": "4.4.0",
-    "eslint-plugin-ava": "^4.2.0",
-    "gulp": "^3.6.0",
-    "gulp-eslint": "^3.0.1",
-    "gulp-exclude-gitignore": "^1.0.0",
-    "gulp-istanbul": "^1.1.1",
-    "gulp-mocha": "^4.3.1",
-    "gulp-nsp": "^2.1.0",
-    "gulp-plumber": "^1.0.0"
+    "eslint-plugin-ava": "4.2.0"
   },
   "scripts": {
     "test": "gulp",

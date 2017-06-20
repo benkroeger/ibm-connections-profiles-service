@@ -37,8 +37,8 @@
     "eslint-plugin-ava": "4.2.0"
   },
   "scripts": {
-    "test": "gulp",
+    "test": "ava --verbose",
     "lint-fix": "eslint . --fix",
-    "test-ava": "ava --verbose"
+    "lint": "eslint ."
   }
 }

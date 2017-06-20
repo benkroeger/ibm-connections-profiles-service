@@ -2,11 +2,8 @@
   "name": "ibm-connections-profiles-service",
   "version": "1.0.3",
   "description": "An IBM Connections Profiles API Wrapper, using the oniyi-http-client package for http abstraction",
-  "homepage": "",
-  "author": {
-    "name": "Benjamin Kroeger",
-    "email": "benjamin.kroeger@gmail.com"
-  },
+  "homepage": "https://github.com/benkroeger/ibm-connections-profiles-service#readme",
+  "author": "Benjamin Kroeger <benjamin.kroeger@gmail.com>",
   "files": [
     "lib"
   ],
@@ -19,7 +16,10 @@
     "profiles",
     "oniyi"
   ],
-  "repository": "benkroeger/ibm-connections-profiles-service",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benkroeger/ibm-connections-profiles-service.git"
+  },
   "license": "MIT",
   "dependencies": {
     "async": "2.4.1",
@@ -40,5 +40,11 @@
     "test": "ava --verbose",
     "lint-fix": "eslint . --fix",
     "lint": "eslint ."
+  },
+  "bugs": {
+    "url": "https://github.com/benkroeger/ibm-connections-profiles-service/issues"
+  },
+  "directories": {
+    "test": "test"
   }
 }

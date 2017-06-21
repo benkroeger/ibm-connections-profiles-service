@@ -27,7 +27,8 @@
     "oniyi-http-client": "1.1.1",
     "oniyi-http-plugin-credentials": "0.1.0",
     "oniyi-utils-xml": "1.0.0",
-    "oniyi-vcard-parser": "1.0.0"
+    "oniyi-vcard-parser": "1.0.0",
+    "oniyi-logger": "1.0.0"
   },
   "devDependencies": {
     "ava": "0.19.1",

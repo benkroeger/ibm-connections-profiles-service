@@ -8,7 +8,7 @@ import _ from 'lodash';
 
 // internal modules
 const IbmConnectionsProfilesService = require('../lib');
-const vCardMapping = require('../lib/vcard-attribute-mapping.json');
+const vCardMapping = require('../lib/config/vcard-attribute-mapping.json');
 
 // configure dotenv
 require('dotenv').config();
@@ -25,12 +25,14 @@ test.before(() => {
     headers: {
       Authorization: auth,
     },
+    plugins: {},
   };
   serviceInstance = new IbmConnectionsProfilesService('https://apps.na.collabserv.com/profiles', options);
 });
 
 test.cb('validating retrieving profile entry using Profile service instance, userid provided', (t) => {
   serviceInstance.getEntry({ userid }, {}, (err, result) => {
+    t.true(_.isNull(err));
     _.keys(result).forEach((prop) => {
       t.true(_.values(vCardMapping).includes(prop), `${prop} should be mapped value from {{ vCardMapping }}`);
     });
@@ -43,6 +45,7 @@ test.cb('validating retrieving profile entry using Profile service instance, use
 
 test.cb('validating retrieving network connections using Profile service instance ', (t) => {
   serviceInstance.getNetworkConnections({ userid, ps: 100 }, {}, (err, result) => {
+    t.true(_.isNull(err));
     const properties = ['paginationLinks', 'totalResults', 'startIndex', 'itemsPerPage', 'networkConnections'];
     const colleagueProps = ['id', 'type', 'connectionType', 'status', 'updated', 'message', 'summary', 'links'];
     const { networkConnections, totalResults } = result;

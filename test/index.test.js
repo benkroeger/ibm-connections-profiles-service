@@ -25,7 +25,9 @@ test.before(() => {
     headers: {
       Authorization: auth,
     },
-    plugins: {},
+    plugins: {
+      typeToNameMap: { basic: 'oauth' },
+    },
   };
   serviceInstance = new IbmConnectionsProfilesService('https://apps.na.collabserv.com/profiles', options);
 });

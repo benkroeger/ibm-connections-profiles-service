@@ -26,7 +26,7 @@
     "lodash": "~4.17.4",
     "oniyi-http-client": "1.1.1",
     "oniyi-http-plugin-credentials": "0.1.0",
-    "oniyi-http-plugin-auth-type-injector": "bitbucket:gisag/oniyi-http-plugin-auth-type-injector",
+    "oniyi-http-plugin-format-url-template": "bitbucket:gisag/oniyi-http-plugin-format-url-template#e048def",
     "oniyi-utils-xml": "1.0.0",
     "oniyi-vcard-parser": "1.0.0",
     "oniyi-logger": "1.0.0"

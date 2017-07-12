@@ -3,8 +3,8 @@
 // node core modules
 
 // 3rd party modules
-import test from 'ava';
-import _ from 'lodash';
+const test = require('ava');
+const _ = require('lodash');
 
 // internal modules
 const IbmConnectionsProfilesService = require('../lib');

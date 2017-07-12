@@ -16,12 +16,10 @@ require('dotenv').config();
 // setting up variables
 const userCredentials = process.env.USER_CREDENTIALS;
 const userid = process.env.IBM_CONNECTIONS_ALBERT_USER_ID;
-let options = {};
-let serviceInstance = {};
 
-test.before(() => {
+test.beforeEach((t) => {
   const auth = `Basic ${new Buffer(userCredentials).toString('base64')}`;
-  options = {
+  const options = {
     headers: {
       Authorization: auth,
     },
@@ -32,11 +30,17 @@ test.before(() => {
     },
     authType: 'oauth',
   };
-  serviceInstance = new IbmConnectionsProfilesService('https://apps.na.collabserv.com/profiles', options);
+  const serviceInstance = new IbmConnectionsProfilesService('https://apps.na.collabserv.com/profiles', options);
+  _.assign(t.context, {
+    serviceInstance,
+  });
 });
 
+/* Successful scenarios validations */
+
 test.cb('validating retrieving profile entry using Profile service instance, userid provided', (t) => {
-  serviceInstance.getEntry({ userid }, { authType: 'basic' }, (err, result) => {
+  const { serviceInstance } = t.context;
+  serviceInstance.getProfileEntry({ userid }, {}, (err, result) => {
     t.true(_.isNull(err));
     _.keys(result).forEach((prop) => {
       t.true(_.values(vCardMapping).includes(prop), `${prop} should be mapped value from {{ vCardMapping }}`);
@@ -48,7 +52,9 @@ test.cb('validating retrieving profile entry using Profile service instance, use
   });
 });
 
-test.cb('validating retrieving network connections using Profile service instance ', (t) => {
+test.cb('validating retrieving network connections using Profile service instance, userid provided', (t) => {
+  const { serviceInstance } = t.context;
+
   serviceInstance.getNetworkConnections({ userid, ps: 100 }, { authType: 'basic' }, (err, result) => {
     t.true(_.isNull(err));
     const properties = ['paginationLinks', 'totalResults', 'startIndex', 'itemsPerPage', 'networkConnections'];
@@ -72,8 +78,12 @@ test.cb('validating retrieving network connections using Profile service instanc
   });
 });
 
+/* Error / Wrong input scenarios validations */
+
 test.cb('validating retrieving profile entry using Profile service instance, userid not provided', (t) => {
-  serviceInstance.getEntry({}, { authType: 'basic' }, (error) => {
+  const { serviceInstance } = t.context;
+
+  serviceInstance.getProfileEntry({}, { authType: 'basic' }, (error) => {
     t.is(error.name, 'Error', 'when userid is not available, return an Error');
     t.is(error.message, 'Wrong number of entry selectors provided to receive profile entry: {}');
     t.is(error.status, 400, 'Status number should be equal to 400');
@@ -82,6 +92,8 @@ test.cb('validating retrieving profile entry using Profile service instance, use
 });
 
 test.cb('validating retrieving network connections using Profile service instance, userid not provided', (t) => {
+  const { serviceInstance } = t.context;
+
   serviceInstance.getNetworkConnections({}, { authType: 'basic' }, (error) => {
     t.is(error.name, 'Error', 'when userid is not available, return an Error');
     t.is(error.message, 'Wrong number of entry selectors provided to receive network connections: {}');
@@ -91,6 +103,8 @@ test.cb('validating retrieving network connections using Profile service instanc
 });
 
 test.cb('validating retrieving network connections using Profile service instance, bad userid provided', (t) => {
+  const { serviceInstance } = t.context;
+
   serviceInstance.getNetworkConnections({ userid: 'mock user id' }, { authType: 'basic' }, (error, result) => {
     t.is(error.name, 'Error', 'with wrong serviceLoaderName we should get new Error when userid not available');
     t.true(_.isUndefined(result), 'there should be no result since error returned');

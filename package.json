@@ -36,10 +36,12 @@
     "dotenv": "4.0.0",
     "eslint": "3.15.0",
     "eslint-config-oniyi": "4.4.0",
-    "eslint-plugin-ava": "4.2.0"
+    "eslint-plugin-ava": "4.2.0",
+    "nyc": "11.0.3"
   },
   "scripts": {
     "test": "ava --verbose",
+    "coverage": "nyc npm run test && nyc report --reporter=html",
     "lint-fix": "eslint . --fix",
     "lint": "eslint ."
   },

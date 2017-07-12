@@ -25,8 +25,8 @@
     "async": "2.4.1",
     "lodash": "~4.17.4",
     "oniyi-http-client": "1.1.1",
-    "oniyi-http-plugin-credentials": "0.1.0",
-    "oniyi-http-plugin-format-url-template": "bitbucket:gisag/oniyi-http-plugin-format-url-template#e048def",
+    "oniyi-http-plugin-credentials": "github:futin/oniyi-http-plugin-credentials#d3aa547f11e9",
+    "oniyi-http-plugin-format-url-template": "bitbucket:gisag/oniyi-http-plugin-format-url-template#6d75931",
     "oniyi-utils-xml": "1.0.0",
     "oniyi-vcard-parser": "1.0.0",
     "oniyi-logger": "1.0.0"

@@ -24,11 +24,10 @@ test.beforeEach((t) => {
       Authorization: auth,
     },
     plugins: {
-      formatUrlTemplate: {
-        typeToNameMap: { basic: 'oauth' },
+      valuesMap: {
+        authType: { basic: 'oauth' },
       },
     },
-    authType: 'oauth',
   };
   const serviceInstance = new IbmConnectionsProfilesService('https://apps.na.collabserv.com/profiles', options);
   _.assign(t.context, {
@@ -40,7 +39,7 @@ test.beforeEach((t) => {
 
 test.cb('validating retrieving profile entry using Profile service instance, userid provided', (t) => {
   const { serviceInstance } = t.context;
-  serviceInstance.getProfileEntry({ userid }, {}, (err, result) => {
+  serviceInstance.getProfileEntry({ userid }, { authType: 'basic' }, (err, result) => {
     t.true(_.isNull(err));
     _.keys(result).forEach((prop) => {
       t.true(_.values(vCardMapping).includes(prop), `${prop} should be mapped value from {{ vCardMapping }}`);

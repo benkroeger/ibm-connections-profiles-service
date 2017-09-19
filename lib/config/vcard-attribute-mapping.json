@@ -12,7 +12,7 @@
   "PHOTO;VALUE=URL": "photo",
   "REV": "lastUpdate",
   "ROLE": "employeeTypeDesc",
-  "SOUND;VALUE=URL": "pronounciation",
+  "SOUND;VALUE=URL": "pronunciation",
   "TEL;CELL": "mobileNumber",
   "TEL;FAX": "faxNumber",
   "TEL;PAGER": "pagerNumber",

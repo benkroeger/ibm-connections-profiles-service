@@ -1,0 +1,6 @@
+{
+  "type": "http://www.ibm.com/xmlns/prod/sn/type",
+  "source": "http://www.ibm.com/xmlns/prod/sn/source",
+  "resourceType": "http://www.ibm.com/xmlns/prod/sn/resource-type",
+  "resourceId": "http://www.ibm.com/xmlns/prod/sn/resource-id"
+}

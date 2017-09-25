@@ -1,0 +1,5 @@
+{
+  "type": "http://www.ibm.com/xmlns/prod/sn/type",
+  "connectionType": "http://www.ibm.com/xmlns/prod/sn/connection/type",
+  "status": "http://www.ibm.com/xmlns/prod/sn/status"
+}

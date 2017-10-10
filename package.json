@@ -24,7 +24,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "lodash": "^4.17.4",
-    "oniyi-http-client": "^1.1.1",
+    "oniyi-http-client": "^1.2.0",
     "oniyi-http-plugin-credentials": "^0.2.1",
     "oniyi-http-plugin-format-url-template": "^1.0.2",
     "oniyi-utils-xml": "^1.1.0",
@@ -36,8 +36,8 @@
     "eslint": "^4.5.0",
     "eslint-config-oniyi": "^4.5.0",
     "eslint-plugin-ava": "^4.2.2",
-    "nock": "^9.0.14",
-    "nyc": "^11.1.0"
+    "nock": "^9.0.22",
+    "nyc": "^11.2.1"
   },
   "scripts": {
     "test": "ava --verbose",

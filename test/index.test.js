@@ -27,8 +27,8 @@ test.beforeEach((t) => {
   if (unmocked) {
     Object.assign(serviceOptions.defaults, {
       auth: {
-        user: username,
-        pass: password,
+        user: 'albert.energy@gis-demo.com',
+        pass: 'Gis$Demo',
       },
     });
   }
@@ -99,7 +99,7 @@ test.cb('validating retrieving network connections using Profile service instanc
 
 test.cb('validating retrieving followed profiles', (t) => {
   const { serviceInstance } = t.context;
-  serviceInstance.getFollowedProfiles({/* query */}, { /* options */ }, (err, result) => {
+  serviceInstance.getFollowedProfiles({ /* query */ }, { /* options */ }, (err, result) => {
     t.true(_.isNull(err));
     const properties = ['paginationLinks', 'totalResults', 'startIndex', 'itemsPerPage', 'followedProfiles'];
     const followedProfileProps = ['id', 'categories', 'links', 'title'];
@@ -169,34 +169,48 @@ test.cb('validating retrieving service document', (t) => {
 
 /* Error / Wrong input scenarios validations */
 
-test.cb('validating retrieving profile entry using Profile service instance, userid not provided', (t) => {
-  const { serviceInstance } = t.context;
+test.cb('error validation for retrieving profile entry using Profile service instance, userid not provided',
+  (t) => {
+    const { serviceInstance } = t.context;
 
-  serviceInstance.getProfileEntry({ /* query */ }, { /* options */ }, (error) => {
-    t.is(error.name, 'Error', 'when userid is not available, return an Error');
-    t.is(error.message, 'Wrong number of entry selectors provided to receive profile entry: {}');
-    t.is(error.status, 400, 'Status number should be equal to 400');
-    t.end();
+    serviceInstance.getProfileEntry({ /* query */ }, { /* options */ }, (error) => {
+      t.is(error.name, 'Error', 'when userid is not available, return an Error');
+      t.is(error.message, 'Wrong number of entry selectors provided to receive profile entry: {}');
+      t.is(error.status, 400, 'Status number should be equal to 400');
+      t.end();
+    });
   });
-});
 
-test.cb('validating retrieving network connections using Profile service instance, userid not provided', (t) => {
-  const { serviceInstance } = t.context;
+test.cb('error validation for retrieving network connections using Profile service instance, userid not provided',
+  (t) => {
+    const { serviceInstance } = t.context;
 
-  serviceInstance.getNetworkConnections({ /* query */ }, { /* options */ }, (error) => {
-    t.is(error.name, 'Error', 'when userid is not available, return an Error');
-    t.is(error.message, 'Wrong number of entry selectors provided to receive network connections: {}');
-    t.is(error.status, 400, 'Status number should be equal to 400');
-    t.end();
+    serviceInstance.getNetworkConnections({ /* query */ }, { /* options */ }, (error) => {
+      t.is(error.name, 'Error', 'when userid is not available, return an Error');
+      t.is(error.message, 'Wrong number of entry selectors provided to receive network connections: {}');
+      t.is(error.status, 400, 'Status number should be equal to 400');
+      t.end();
+    });
   });
-});
 
-test.cb('validating retrieving network connections using Profile service instance, bad userid provided', (t) => {
+test.cb('error validation for retrieving network connections using Profile service instance, wrong userid provided',
+  (t) => {
+    const { serviceInstance } = t.context;
+
+    serviceInstance.getNetworkConnections({ userid: 'wrong user id' }, { /* options */ }, (error, result) => {
+      t.is(error.name, 'Error', 'with wrong serviceLoaderName we should get new Error when userid not available');
+      t.true(error.message.includes('The request is invalid'));
+      t.true(_.isUndefined(result), 'there should be no result since error returned');
+      t.end();
+    });
+  });
+
+test.cb('error validation for retrieving profile entry using Profile service instance, userid provided', (t) => {
   const { serviceInstance } = t.context;
 
-  serviceInstance.getNetworkConnections({ userid: 'mock user id' }, { /* options */ }, (error, result) => {
-    t.is(error.name, 'Error', 'with wrong serviceLoaderName we should get new Error when userid not available');
-    t.true(_.isUndefined(result), 'there should be no result since error returned');
+  serviceInstance.getProfileEntry({ userid: 'wrong user id' }, { /* options */ }, (error) => {
+    t.is(error.message,
+      'Expected output type [vcard] was not found in entry document. Please provide valid profile credentials');
     t.end();
   });
 });

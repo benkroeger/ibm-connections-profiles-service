@@ -21,6 +21,22 @@
     "url": "git+https://github.com/benkroeger/ibm-connections-profiles-service.git"
   },
   "license": "MIT",
+  "scripts": {
+    "format": "prettier-eslint --write \"lib/**/*.js\" \"test/**/*.js\"",
+    "prelint": "npm run format",
+    "lint": "eslint --ignore-path .gitignore .",
+    "test": "ava --verbose",
+    "coverage": "nyc npm run test && nyc report --reporter=html"
+  },
+  "devDependencies": {
+    "ava": "^0.23.0",
+    "eslint": "^4.10.0",
+    "eslint-config-oniyi": "^5.0.2",
+    "eslint-plugin-ava": "^4.2.2",
+    "nock": "^9.0.27",
+    "nyc": "^11.3.0",
+    "prettier-eslint-cli": "^4.4.0"
+  },
   "dependencies": {
     "async": "^2.5.0",
     "lodash": "^4.17.4",
@@ -30,20 +46,6 @@
     "oniyi-utils-xml": "^1.1.0",
     "oniyi-vcard-parser": "^1.0.0",
     "oniyi-logger": "^1.0.0"
-  },
-  "devDependencies": {
-    "ava": "^0.22.0",
-    "eslint": "^4.5.0",
-    "eslint-config-oniyi": "^4.5.0",
-    "eslint-plugin-ava": "^4.2.2",
-    "nock": "^9.0.22",
-    "nyc": "^11.2.1"
-  },
-  "scripts": {
-    "test": "ava --verbose",
-    "coverage": "nyc npm run test && nyc report --reporter=html",
-    "lint-fix": "npm run lint --fix",
-    "lint": "eslint ."
   },
   "bugs": {
     "url": "https://github.com/benkroeger/ibm-connections-profiles-service/issues"

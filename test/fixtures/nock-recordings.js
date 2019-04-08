@@ -1,3 +1,5 @@
+'use strict';
+
 const nock = require('nock');
 
 /* eslint-disable */
@@ -53,7 +55,7 @@ nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
       'user_lang=ZW5fVVM%3D-MjMxNzY1NDY%3D; Domain=na.collabserv.com; Path=/; Expires=Fri, 03-Nov-17 11:06:23 GMT; Secure',
       'Set-Cookie',
       'BIGipServer~A3Engage~A3Engage-WebSEAL-80=!B1d0xVgn14J5n4QAkThea7qxs6W1XXhd3Y9ddqlSsLArDA3sPU0J3bEBF526kK38jxybwic8Ux1Xzg==; path=/; Secure',
-    ]
+    ],
   );
 
 nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
@@ -107,7 +109,7 @@ nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
       'user_lang=ZW5fVVM%3D-MjMxNzY1NDY%3D; Domain=na.collabserv.com; Path=/; Expires=Fri, 03-Nov-17 11:06:23 GMT; Secure',
       'Set-Cookie',
       'BIGipServer~A3Engage~A3Engage-WebSEAL-80=!fcPhn28fYrf8EzkAkThea7qxs6W1XQpCDV07/nBLJ981oiuQz7Dc29crOnaR6aKCso+3xNiREgTZKA==; path=/; Secure',
-    ]
+    ],
   );
 
 nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
@@ -161,7 +163,7 @@ nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
       'user_lang=ZW5fVVM%3D-MjMxNzY1NDY%3D; Domain=na.collabserv.com; Path=/; Expires=Fri, 03-Nov-17 11:06:23 GMT; Secure',
       'Set-Cookie',
       'BIGipServer~A3Engage~A3Engage-WebSEAL-80=!B5N/INbLdyoeVRAAkThea7qxs6W1XU3A+1D8UGid1XIvEkIfSBqh7/gVNxbq39p1+cjaAghSjo4U8g==; path=/; Secure',
-    ]
+    ],
   );
 
 nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
@@ -224,7 +226,7 @@ nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
       'user_lang=ZW5fVVM%3D-MjMxNzY1NDY%3D; Domain=na.collabserv.com; Path=/; Expires=Fri, 03-Nov-17 11:06:23 GMT; Secure',
       'Set-Cookie',
       'BIGipServer~A3Engage~A3Engage-WebSEAL-80=!Y9ykdUnRmtxaYXsAkThea7qxs6W1Xed66LXw9g7upPaMc20zv2xQ1QmKBsafn+F9F4La6uLq3/G25LA=; path=/; Secure',
-    ]
+    ],
   );
 
 nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
@@ -283,7 +285,7 @@ nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })
       'user_lang=ZW5fVVM%3D-MjMxNzY1NDY%3D; Domain=na.collabserv.com; Path=/; Expires=Fri, 03-Nov-17 11:06:23 GMT; Secure',
       'Set-Cookie',
       'BIGipServer~A3Engage~A3Engage-WebSEAL-80=!YLDce/uZjfXXIZwAkThea7qxs6W1Xb273jdTyG8gD0jkRmiJsdvVKKSwLiNDoHmlZiN1m9Cy6bqb0A==; path=/; Secure',
-    ]
+    ],
   );
 
 nock('https://apps.na.collabserv.com:443', { encodedQueryParams: true })

@@ -1,3 +1,5 @@
+'use strict';
+
 // node core modules
 const fs = require('fs');
 const path = require('path');
@@ -25,7 +27,7 @@ const persist = () =>
       '/* eslint-enable */',
       '',
     ].join(EOL),
-    'utf8'
+    'utf8',
   );
 
 // eslint-disable-next-line global-require, import/no-dynamic-require
